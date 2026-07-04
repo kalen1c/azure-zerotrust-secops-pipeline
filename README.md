@@ -118,4 +118,4 @@ graph TD
 Project Methodology: To push my cloud security skills beyond standard tutorials, I used AI to help establish the initial project parameters and map out the target architecture. Everything beyond that initial blueprint, the coding, cloud infrastructure configuration, troubleshooting, and learning is entirely my own hands-on work. The following commits document my journey of actively building this complex system from the ground up.
 
 You can view my technical hurdles, bug fixes, planning and build progress in the
-`/Troubleshooting & Progress Log/`
+[`/Troubleshooting & Progress Log/`](Troubleshooting-and-Progress-Log.md)
