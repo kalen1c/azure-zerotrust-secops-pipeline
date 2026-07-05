@@ -1,3 +1,3 @@
 # My Scripts
 
-[Attacker Edge Processor](Edge-Processor-Script)
+[Attacker Edge Processor](edge-processor-script)
