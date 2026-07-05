@@ -1,0 +1,54 @@
+$API_Key = "YOUR-API-KEY"
+
+# Grabs the 10 latest attacks
+$FailedLogons = Get-WinEvent -FilterHashtable @{ LogName = 'Security'; Id = 4625 } -MaxEvents 10 -ErrorAction SilentlyContinue
+
+if ($FailedLogons) {
+    
+    $IpLedger = @{}
+    # Converts attempts to readable xml
+    foreach ($Event in $FailedLogons) {
+        $EventXML = [xml]$Event.ToXml()
+
+        $Username  = ($EventXML.Event.EventData.Data | Where-Object {$_.Name -eq "TargetUserName"}).'#text'
+        $SourceIP  = ($EventXML.Event.EventData.Data | Where-Object {$_.Name -eq "IpAddress"}).'#text'
+        $Timestamp = $Event.TimeCreated
+
+        # Checks if IP is already logged
+        if ($IpLedger.ContainsKey($SourceIP)) {
+            
+            # If yes, adds count rather than calling API again
+            $IpLedger[$SourceIP].Count++
+            $IpLedger[$SourceIP].Lastseen = $Timestamp
+            
+        } else {
+            
+            # If no, Geolocates
+            $API_URL = "https://api.ipgeolocation.io/ipgeo?apiKey=$API_Key&ip=$SourceIP"
+            $GeoData = Invoke-RestMethod -Uri $API_URL -Method Get
+
+            # Builds all the data
+            $AttackLedger = [PSCustomObject]@{
+                IPAddress = $SourceIP
+                Username  = $Username
+                City      = $GeoData.city
+                Country   = $GeoData.country_name
+                Latitude  = $GeoData.latitude
+                Longitude = $GeoData.longitude
+                Firstseen = $Timestamp
+                Lastseen  = $Timestamp
+                Count     = 1
+            }
+
+            # Save it to the ledger
+            $IpLedger[$SourceIP] = $AttackLedger
+        }
+    }
+    
+
+    #Prints the final ledger
+    $IpLedger.Values | Format-Table -AutoSize
+
+} else {
+    Write-Output "No attacks detected"
+}
