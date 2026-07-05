@@ -41,7 +41,7 @@ I also started learning how to write powershell scripts and wrote the scraper, g
 - Made windows time sync automatically to make sure data is accurate
 - Created a firewall rule to blocking access to the IMDS IP address to prevent attackers from extracting the key vault access token
 - Learned how to and created the script that scrapes the attacker details, geolocates them and aggregates the data into a readable table stored in a JSONL file
-- Tested all of these features and made sure that the function
+- Tested all of these features and made sure that they function
   
 **Issues Faced:**  
 The issues that I faced today were much higher complexity than the previous days, as today I started writing the powershell script with little base knowledge, I had to learn how powershell scripts operate and build the script line by line.
