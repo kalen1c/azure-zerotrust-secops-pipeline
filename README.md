@@ -104,7 +104,7 @@ graph TD
 * `/visualisations/`
 * `/incident-response/`
 * `/infrastructure/`
-* `/scripts/`
+* [`/scripts/`](Scripts.md)
 * `/dashboards/`
 
 
