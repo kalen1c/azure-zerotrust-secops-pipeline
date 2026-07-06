@@ -1,4 +1,4 @@
-# My Scripts
+# My Scripts and KQL
 
 [Attacker Edge Processor](edge-processor-script)
 
