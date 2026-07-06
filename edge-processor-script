@@ -1,11 +1,13 @@
 $API_Key = "YOUR_API_KEY"
 $LogFilePath = "C:\ProgramData\failed_rdp.json"
 
-# Grabs the 10 latest attacks
-$FailedLogons = Get-WinEvent -FilterHashtable @{ LogName = 'Security'; Id = 4625 } -MaxEvents 10 -ErrorAction SilentlyContinue
+# Grabs logs from last 5 minutes and sorts them chronologically
+$StartTime = (Get-Date).AddMinutes(-5)
+$FailedLogons = Get-WinEvent -FilterHashtable @{ LogName = 'Security'; Id = 4625; StartTime = $StartTime } -ErrorAction SilentlyContinue | Sort-Object TimeCreated
+
 
 if ($FailedLogons) {
-    
+   
     $IpLedger = @{}
     # Converts attempts to readable xml
     foreach ($Event in $FailedLogons) {
@@ -13,7 +15,7 @@ if ($FailedLogons) {
 
         $Username  = ($EventXML.Event.EventData.Data | Where-Object {$_.Name -eq "TargetUserName"}).'#text'
         $SourceIP  = ($EventXML.Event.EventData.Data | Where-Object {$_.Name -eq "IpAddress"}).'#text'
-        $Timestamp = $Event.TimeCreated
+        $Timestamp = $Timestamp = $Event.TimeCreated.ToString("yyyy-MM-ddTHH:mm:ssZ")
 
         # Checks if IP is already logged
         if ($IpLedger.ContainsKey($SourceIP)) {
@@ -45,7 +47,6 @@ if ($FailedLogons) {
             $IpLedger[$SourceIP] = $AttackLedger
         }
     }
-    
 
 
     # Saves data into JSONL file
