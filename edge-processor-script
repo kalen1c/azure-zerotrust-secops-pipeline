@@ -5,33 +5,42 @@ $LogFilePath = "C:\ProgramData\failed_rdp.json"
 $StartTime = (Get-Date).AddMinutes(-5)
 $FailedLogons = Get-WinEvent -FilterHashtable @{ LogName = 'Security'; Id = 4625; StartTime = $StartTime } -ErrorAction SilentlyContinue | Sort-Object TimeCreated
 
-
 if ($FailedLogons) {
    
-    $IpLedger = @{}
+    $AttackLedger = @{} # Tracks unique IP + Username combos
+    $IPCache = @{}      # Caches GeoData to save API calls!
+
     # Converts attempts to readable xml
     foreach ($Event in $FailedLogons) {
         $EventXML = [xml]$Event.ToXml()
 
         $Username  = ($EventXML.Event.EventData.Data | Where-Object {$_.Name -eq "TargetUserName"}).'#text'
         $SourceIP  = ($EventXML.Event.EventData.Data | Where-Object {$_.Name -eq "IpAddress"}).'#text'
-        $Timestamp = $Timestamp = $Event.TimeCreated.ToString("yyyy-MM-ddTHH:mm:ssZ")
+        $Timestamp = $Event.TimeCreated.ToString("yyyy-MM-ddTHH:mm:ssZ")
 
-        # Checks if IP is already logged
-        if ($IpLedger.ContainsKey($SourceIP)) {
+        # Creates a unique key for specific IP and username combo
+        $LedgerKey = "$SourceIP-$Username"
+
+        # Checks if this exact IP and Username combo is already logged
+        if ($AttackLedger.ContainsKey($LedgerKey)) {
             
             # If yes, adds count rather than calling API again
-            $IpLedger[$SourceIP].Count++
-            $IpLedger[$SourceIP].Lastseen = $Timestamp
+            $AttackLedger[$LedgerKey].Count++
+            $AttackLedger[$LedgerKey].Lastseen = $Timestamp
             
         } else {
             
-            # If no, Geolocates
-            $API_URL = "https://api.ipgeolocation.io/ipgeo?apiKey=$API_Key&ip=$SourceIP"
-            $GeoData = Invoke-RestMethod -Uri $API_URL -Method Get
+            # If we haven't geolocated this IP yet during this run, call the API
+            if (-not $IPCache.ContainsKey($SourceIP)) {
+                $API_URL = "https://api.ipgeolocation.io/ipgeo?apiKey=$API_Key&ip=$SourceIP"
+                $IPCache[$SourceIP] = Invoke-RestMethod -Uri $API_URL -Method Get
+            }
+
+            # Pull the location from our local cache
+            $GeoData = $IPCache[$SourceIP]
 
             # Builds all the data
-            $AttackLedger = [PSCustomObject]@{
+            $NewAttack = [PSCustomObject]@{
                 IPAddress = $SourceIP
                 Username  = $Username
                 City      = $GeoData.city
@@ -43,17 +52,16 @@ if ($FailedLogons) {
                 Count     = 1
             }
 
-            # Save it to the ledger
-            $IpLedger[$SourceIP] = $AttackLedger
+            # Saves it to the ledger
+            $AttackLedger[$LedgerKey] = $NewAttack
         }
     }
-
-
+    
     # Saves data into JSONL file
-    foreach($Entry in $IpLedger.Values) {
+    foreach($Entry in $AttackLedger.Values) {
         $JsonLine = $Entry | ConvertTo-Json -Compress
         Add-Content -Path $LogFilePath -Value $JsonLine
-}
+    }
 
 } else {
     Write-Output "No attacks detected"
