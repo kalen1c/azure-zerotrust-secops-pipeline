@@ -17,7 +17,7 @@ if ($FailedLogons) {
         $Username  = ($EventXML.Event.EventData.Data | Where-Object {$_.Name -eq "TargetUserName"}).'#text'
         
         # Cleans username field to prevent log poisoning
-        $Username = $Username -replace '[^a-zA-Z0-9\.\-\_\@]', ''
+        $Username = $Username -replace '[^a-zA-Z0-9._@-]', ''
 
         $SourceIP  = ($EventXML.Event.EventData.Data | Where-Object {$_.Name -eq "IpAddress"}).'#text'
         $Timestamp = $Event.TimeCreated.ToString("yyyy-MM-ddTHH:mm:ssZ")
@@ -76,7 +76,7 @@ if ($FailedLogons) {
         $Writer.WriteLine($PayloadString)
         $Writer.Close()
         $Stream.Close()
-    }
+        }
 
     } else {
     Write-Host "No attacks detected in the last 5 minutes."
