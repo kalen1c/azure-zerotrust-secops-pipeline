@@ -8,7 +8,7 @@ $FailedLogons = Get-WinEvent -FilterHashtable @{ LogName = 'Security'; Id = 4625
 if ($FailedLogons) {
    
     $AttackLedger = @{} # Tracks unique IP + Username combos
-    $IPCache = @{}      # Caches GeoData to save API calls!
+    $IPCache = @{}      # Caches GeoData to save API calls
 
     # Converts attempts to readable xml
     foreach ($Event in $FailedLogons) {
@@ -20,7 +20,7 @@ if ($FailedLogons) {
 
         # Creates a unique key for specific IP and username combo
         $LedgerKey = "$SourceIP-$Username"
-
+        
         # Checks if this exact IP and Username combo is already logged
         if ($AttackLedger.ContainsKey($LedgerKey)) {
             
@@ -30,13 +30,13 @@ if ($FailedLogons) {
             
         } else {
             
-            # If we haven't geolocated this IP yet during this run, call the API
+            # If we haven't geolocated this IP yet, call the API
             if (-not $IPCache.ContainsKey($SourceIP)) {
                 $API_URL = "https://api.ipgeolocation.io/ipgeo?apiKey=$API_Key&ip=$SourceIP"
                 $IPCache[$SourceIP] = Invoke-RestMethod -Uri $API_URL -Method Get
             }
 
-            # Pull the location from our local cache
+            # Pull the location from geo cache
             $GeoData = $IPCache[$SourceIP]
 
             # Builds all the data
@@ -56,13 +56,27 @@ if ($FailedLogons) {
             $AttackLedger[$LedgerKey] = $NewAttack
         }
     }
+  
+    # Formats the data into JSON lines in memory
+    $JsonLines = $AttackLedger.Values | ForEach-Object {$_ | ConvertTo-Json -Compress}
+    $PayloadString = $JsonLines -join "`r`n"
     
-    # Saves data into JSONL file
-    foreach($Entry in $AttackLedger.Values) {
-        $JsonLine = $Entry | ConvertTo-Json -Compress
-        Add-Content -Path $LogFilePath -Value $JsonLine
+    # Checks if there is data to write
+    if ($AttackLedger.Count -gt 0) {
+
+        # Opens the file and gies permissions to write new data into the file while giving other programs access to read/write it simultaneously
+        $Stream = [System.IO.File]::Open($LogFilePath, [System.IO.FileMode]::Append, [System.IO.FileAccess]::Write, [System.IO.FileShare]::ReadWrite)
+        $Writer = New-Object System.IO.StreamWriter($Stream)
+
+        # Writes data and closes data stream
+        $Writer.WriteLine($PayloadString)
+        $Writer.Close()
+        $Stream.Close()
     }
 
-} else {
-    Write-Output "No attacks detected"
-}
+    } else {
+    Write-Host "No attacks detected in the last 5 minutes."
+
+    }
+#Exits script to prevent ghost processes
+Exit
