@@ -37,7 +37,18 @@ if ($FailedLogons) {
             # If we haven't geolocated this IP yet, call the API
             if (-not $IPCache.ContainsKey($SourceIP)) {
                 $API_URL = "https://api.ipgeolocation.io/ipgeo?apiKey=$API_Key&ip=$SourceIP"
-                $IPCache[$SourceIP] = Invoke-RestMethod -Uri $API_URL -Method Get
+                # Checks for timout and errors to catch the block on failure
+                try{
+                    $IPCache[$SourceIP] = Invoke-RestMethod -Uri $API_URL -Method Get -TimeoutSec 10 -ErrorAction Stop
+                }
+                catch{
+                    $IPCache[$SourceIP] = [PSCustomObject]@{
+                        city         = "Geo_Unavailable"
+                        country_name = "Geo_Unavailable"
+                        latitude     = "0.0000"
+                        longitude    = "0.0000"
+                    }
+                }
             }
 
             # Pull the location from geo cache
@@ -82,5 +93,5 @@ if ($FailedLogons) {
     Write-Host "No attacks detected in the last 5 minutes."
 
     }
-#Exits script to prevent ghost processes
+# Exits script to prevent ghost processes
 Exit
