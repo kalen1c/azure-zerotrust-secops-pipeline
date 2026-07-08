@@ -1,4 +1,10 @@
-$API_Key = "YOUR_API_KEY"
+# Authenticates to Azure using VM's assigned identity
+Connect-AzAccount -Identity
+
+# Retrieves API key from Vault into memory
+$VaultName = "YOUR_VAULT_NAME"
+$API_Key = (Get-AzKeyVaultSecret -VaultName $VaultName -Name "GeoAPIKey" -AsPlainText)
+
 $LogFilePath = "C:\ProgramData\failed_rdp.json"
 
 # Grabs logs from last 5 minutes and sorts them chronologically
@@ -93,5 +99,5 @@ if ($FailedLogons) {
     Write-Host "No attacks detected in the last 5 minutes."
 
     }
-# Exits script to prevent ghost processes
+#Exits script to prevent ghost processes
 Exit
