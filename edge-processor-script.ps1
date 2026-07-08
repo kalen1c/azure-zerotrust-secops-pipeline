@@ -6,6 +6,27 @@ $VaultName = "YOUR_VAULT_NAME"
 $API_Key = (Get-AzKeyVaultSecret -VaultName $VaultName -Name "GeoAPIKey" -AsPlainText)
 
 $LogFilePath = "C:\ProgramData\failed_rdp.json"
+$MaxSize = 50MB
+
+# Archives the file if it gets larger than 50MB
+if(Test-Path $LogFilePath){
+    $File = Get-Item $LogFilePath
+        if($File.Length -gt $MaxSize){
+            $Timestamp = (Get-Date).ToString("yyyyMMdd_HHmmss")
+            $ArchiveName = "failed_rdp_archive_$Timestamp.json"
+            Rename-Item -Path $LogFilePath -NewName $ArchiveName
+
+            # Automatically deletes archives over 1 month old
+            $ArchiveFolder = "C:\ProgramData\"
+            Get-ChildItem -Path $ArchiveFolder -Filter "failed_rdp_archive_*.json" | Where-Object {$_.CreationTime -lt (Get-Date).AddMonths(-1)} | Remove-Item -Force
+        }
+    }
+
+# Creates new log file if none already exist
+if(-not (Test-Path $LogFilePath)){
+    New-Item -Path $LogFilePath -ItemType File -Force | Out-Null
+}
+
 
 # Grabs logs from last 5 minutes and sorts them chronologically
 $StartTime = (Get-Date).AddMinutes(-5)
