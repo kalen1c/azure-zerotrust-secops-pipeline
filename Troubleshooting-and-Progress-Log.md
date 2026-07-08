@@ -57,7 +57,7 @@ Updated and fixed issues with edge processor.
 - Created script to automate edge processor every 5 minutes
 - Fixed edge processor already in use issue
 
-**Issues Faced**  
+**Issues Faced:**  
 - Today I faced many issuse with the pipeline and scripts, initially I was having errors with the sample logs due to not having a TimeGenerated column, I fixed this by creating one and matching the timestamp with my FirstSeen column through KQL. 
 - I also was having an issue where different usernames inputted by the same IP would add a count to the output rather than creating a new entry. I solved this by creating a key that tracked the combination of IP and usernames and checking for that key to add a count rather than checking only the source IP. As well this I cached the geolocation to save on API calls of different usernames with the same IP.
 - I faced my most difficult issue yet, when I started running the edge processor, I kept getting an error that the file was already in use, this fixed after I restarted the VM however persisted each time after I added a new test login. I first thought that the reason behind this happening was because the edge-process-automator was running ghost processes holding the file, so I changed the settings in the task scheduler to stop the automator if it ran longer than 1 minute. However, my problem still persisted, to understand the root cause behind this issue I installed a command line tool that found the program holding the file, and determined that it was being held by fluent-bit.exe, which is the engine behind the Azure monitoring agent, which was reading the file when I added new entries, and attempting to send them to Azure. I tried to solve this by adding a retry loop to write the contents into the json file hoping that fluent-bit.exe only locked the file for a small amount of time. This resulted in no errors but the file was not being updated, so I modified the code for it to return in text on what part it was stuck on and found that fluent-bit locked the file as long as there was new data. To solve this issue I had to use C# .NET streams to only write new data and not overwrite or read anything, and while doing this grant permission for other programs to read and write the file at the same time as the new data was being written. This fixed the issue.
@@ -66,7 +66,7 @@ Updated and fixed issues with edge processor.
 Today I focused heavily on FinOps and SecOps hardening across the Azure environment and local scripts.  
 This officially marks the completion of the projects architecture, with all the planned infrastructure, security, and pipeline features sucessfully deployed and tested.  
 
-**Progress made**  
+**Progress made:**  
 - Added username sanitisation to edge processor to prevent log poisoning
 - Configured edge processor to retrieve geolocation API key from secrets vault following zero-trust principles
 - Added error handling to edge processor for geolocation API, returning "Geo_Unavailable" if API times out or returns errors
@@ -79,7 +79,7 @@ This officially marks the completion of the projects architecture, with all the 
 - Created and ran IMDS firewall command to prevent attackers from talking to IMDS service and extracting tokens
 - Added full powershell setup script to github, including all required setup commands for VM
 
-**Issues Faced**
+**Issues Faced:**
 - I encountered an issue while testing my username sanitisation as it was not working, the issue was my with regex formatting, which I fixed, which solved the issue.
 - I was having issues connecting my action group that severs VM connection if budget is exceeded, the reason for this was because I had the wrong scope selected, so I changed the scope to match the subscription with the VM, and connected them, solving the issue.
 - I encountered issues with setting up IMDS firewall, this was because I needed to convert the user into SDDL for the rule, doing this fixed the issue.
