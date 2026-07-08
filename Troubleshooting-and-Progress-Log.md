@@ -43,7 +43,7 @@ Started learning how to write powershell scripts and wrote the scraper, geolocat
 **Issues Faced:**  
 - The issues that I faced today were much higher complexity than the previous days, as today I started writing the powershell script with little base knowledge, I had to learn how powershell scripts operate and build the script line by line.
 
-## July 6 2026  
+## July 7 2026  
 Built the pipeline and configured the components that run through it.  
 Updated and fixed issues with edge processor.
 
@@ -62,7 +62,7 @@ Updated and fixed issues with edge processor.
 - I also was having an issue where different usernames inputted by the same IP would add a count to the output rather than creating a new entry. I solved this by creating a key that tracked the combination of IP and usernames and checking for that key to add a count rather than checking only the source IP. As well this I cached the geolocation to save on API calls of different usernames with the same IP.
 - I faced my most difficult issue yet, when I started running the edge processor, I kept getting an error that the file was already in use, this fixed after I restarted the VM however persisted each time after I added a new test login. I first thought that the reason behind this happening was because the edge-process-automator was running ghost processes holding the file, so I changed the settings in the task scheduler to stop the automator if it ran longer than 1 minute. However, my problem still persisted, to understand the root cause behind this issue I installed a command line tool that found the program holding the file, and determined that it was being held by fluent-bit.exe, which is the engine behind the Azure monitoring agent, which was reading the file when I added new entries, and attempting to send them to Azure. I tried to solve this by adding a retry loop to write the contents into the json file hoping that fluent-bit.exe only locked the file for a small amount of time. This resulted in no errors but the file was not being updated, so I modified the code for it to return in text on what part it was stuck on and found that fluent-bit locked the file as long as there was new data. To solve this issue I had to use C# .NET streams to only write new data and not overwrite or read anything, and while doing this grant permission for other programs to read and write the file at the same time as the new data was being written. This fixed the issue.
 
-## July 7 2026  
+## July 8 2026  
 Today I focused heavily on FinOps and SecOps hardening across the Azure environment and local scripts.  
 This officially marks the completion of the projects architecture, with all the planned infrastructure, security, and pipeline features sucessfully deployed and tested.  
 
