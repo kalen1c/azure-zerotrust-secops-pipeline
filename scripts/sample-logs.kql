@@ -1,0 +1,2 @@
+# Creates TimeGenerated Column and matches it to the Firstseen date
+source | extend TimeGenerated = todatetime(Firstseen)
