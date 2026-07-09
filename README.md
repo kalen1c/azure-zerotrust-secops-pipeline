@@ -1,6 +1,10 @@
 #     azure-zerotrust-secops-pipeline
 An automated Azure SecOps pipeline engineered to process global MITRE T1110 threat telemetry. Features include strict network filtering, Zero-Trust managed identities, a custom C# .NET edge-processor, automated FinOps circuit breakers, KQL transformations, and live Microsoft Sentinel SIEM incident mapping. 
 
+**[View the Live Global Threat Map Here](https://github.com/kalen1c/azure-zerotrust-secops-pipeline/tree/main)**
+
+**Core Technologies:** Azure Sentinel (SIEM) | Log Analytics (LAW) | Kusto Query Language (KQL) | PowerShell | C# .NET | Microsoft Entra ID (Zero Trust) | FinOps Automation
+
 ---
 # Architecture & Threat Intelligence Brief: MITRE T1110 Analysis
 
@@ -9,6 +13,7 @@ An automated Azure SecOps pipeline engineered to process global MITRE T1110 thre
 This project engineers a highly resilient, cost-optimised Azure SecOps data pipeline designed to capture and analyse live MITRE T1110 (Brute Force) campaigns. By utilising a custom PowerShell and C# .NET edge-processor, Zero-Trust managed identities, and automated FinOps circuit breakers, this architecture successfully handles high-velocity attacks while drastically lowering the Total Cost of Ownership (TCO) across compute, API integration, and cloud telemetry ingestion.
 
 Bridging the gap between raw Windows event logs and actionable business risk, the pipeline extracts and enriches authentication failures at the edge into batched JSON telemetry. This data is securely routed through the Azure Monitor Agent (AMA) and parsed by Data Collection Rules (DCR) into discrete SIEM database columns. This equips security teams to visualise global adversary infrastructure in Microsoft Sentinel and deploy targeted perimeter defenses, all within a strictly isolated and financially capped environment.
+
 
 ---
 ## 2. Architecture & Resiliency Controls
@@ -35,6 +40,8 @@ To simulate a production environment while strictly containing the blast radius 
 * **Graceful API Degradation:** The pipeline is engineered to survive third-party outages natively. If the external Geolocation API times out or throttles requests, the script applies fallback rules (e.g., a `Geo_Unavailable` placeholder) and continues processing so the SIEM never drops the underlying authentication alert.
 * **Automated Log Rotation & Time Sync:** The script enforces a 50MB automated log rotation threshold on the local log file to prevent disk exhaustion. Furthermore, the VM enforces strict NTP synchronisation to prevent clock drift, ensuring absolute time-series integrity for Sentinel's velocity graphs.
 * **Ingestion-Time Transformation:** To optimise database query performance and lower storage overhead, the Data Collection Rule (DCR) utilises a defined JSON schema to parse raw JSONL telemetry into discrete columns. KQL is applied strictly for lightweight ingestion-time transformations such as normalising custom timestamp fields prior to Log Analytics Workspace commit.
+
+  
 ---
 ## 3. Architecture Topology & Data Flow
 ```mermaid 
@@ -87,16 +94,16 @@ flowchart TD
     FinOps <-->|"Authenticate via Managed Identity"| EntraID
 
 ```
+
+
 ---
-## 4. Repository Navigation (COMING SOON)
-* `/planning/`
-* `/visualisations/`
-* `/incident-response/`
-* `/infrastructure/`
-* [`/scripts/`](Scripts.md)
-* `/dashboards/`
-
-
+## 4. Repository Navigation
+* **[`/visualisations/`](./visualisations/)** - Contains the interactive global threat map and high-resolution Microsoft Sentinel SIEM charts.
+* **[`/infrastructure/`](./infrastructure/)** - Contains the complete PowerShell deployment script (including IMDS Zero-Trust firewall rules) and VNet NSG configurations.
+* **[`/scripts/`](./scripts/)** - Contains the core PowerShell automation logic, including the custom C# .NET edge-processor, the 5-minute scheduling loop, and the FinOps kill-switch.
+* **[`/kql/`](./kql/)** - Contains the ingestion-time DCR schema transformations and Microsoft Sentinel threat hunting queries.
+* **[`/dashboards/`](./dashboards/)** - Contains the exported JSON template of the Sentinel Workbook.
+* **[`/docs/`](./docs/)** - Contains the daily progress log and MITRE T1110 threat analysis notes.
 
 
 ---
@@ -104,7 +111,7 @@ flowchart TD
 
 
 ---
-Project Methodology: To push my cloud security skills beyond standard tutorials, I used AI to help establish the initial project parameters and map out the target architecture. Everything beyond that initial blueprint, the coding, cloud infrastructure configuration, troubleshooting, and learning is entirely my own hands-on work. The following commits document my journey of actively building this complex system from the ground up.
+**Project Methodology:** To push my cloud security skills beyond standard tutorials, I used AI to help establish the initial project parameters and map out the target architecture. Everything beyond that initial blueprint, the coding, cloud infrastructure configuration, troubleshooting, and learning is entirely my own hands-on work. The following commits document my journey of actively building this complex system from the ground up.
 
 You can view my technical hurdles, bug fixes, planning and build progress in the
-[`/Troubleshooting & Progress Log/`](Troubleshooting-and-Progress-Log.md)
+[**/docs/progress-log.md**](./docs/progress-log.md)
