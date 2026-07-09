@@ -84,6 +84,19 @@ This officially marks the completion of the projects architecture, with all the 
 - I was having issues connecting my action group that severs VM connection if budget is exceeded, the reason for this was because I had the wrong scope selected, so I changed the scope to match the subscription with the VM, and connected them, solving the issue.
 - I encountered issues with setting up IMDS firewall, this was because I needed to convert the user into SDDL for the rule, doing this fixed the issue.
 
+## July 9 2026  
+Today I focused on creating setting up data visualisations and updating the GitHub pages.  
+
+**Progress made:**  
+- Created Microsoft Seninel Workspace
+- Created Sentinel Workbook for data visualisations
+- Updated Repository name, Description, Executive Summary, Architecture & Resiliency Controls, Mermaid Architecture Topology and Repository Navigation in the README.md to match the final project architecture
+- Added link to Global Threat Map
+- Added Core Technologies section to README.md
+
+**Issues Faced:**  
+- I faced issues with coding the KQL for the data visualisations, however resolved them after troubleshooting.
+
 
 
 
