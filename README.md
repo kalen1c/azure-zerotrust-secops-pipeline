@@ -33,70 +33,54 @@ To simulate a production environment while strictly containing the blast radius 
 ---
 ## 3. Architecture Topology & Data Flow
 ```mermaid 
-graph TD
-    subgraph Public_Internet [Public Internet]
-        A[External Threat Actors]
-        F[ipgeolocation.io REST API]
-        NTP[Stratum 1 NTP Time Server]
-        J[Interactive Geospatial Map]
-    end
+flowchart TD
+    %% Define Nodes
+    Attacker["Attacker / Internet"]
+    NSG["Azure NSG Rules:<br>Allow RDP, deny<br>egress & internal pivoting"]
+    NTP["NTP Time Server"]
+    VM["Azure Virtual Machine<br>(B-Series)"]
+    TaskSched["Windows Task Scheduler"]
+    EdgeProc["PowerShell Edge Processor"]
+    KV["Azure Key Vault<br>(Zero trust API retrieval)"]
+    GeoAPI["IPGeolocation.io API<br>(Geolocation data)"]
+    LogFile["Failed_RDP log file"]
+    AMA["Azure Monitor Agent"]
+    DCR["Data Collection Rules"]
+    DCE["Data Collection Endpoint"]
+    LAW["Log Analytics Workspace"]
+    Sentinel["Microsoft Sentinel SIEM"]
+    Workbook["Sentinel Workbook<br>(Threat Map & Visualisations)"]
+    FinOps["FinOps VM Kill-Switch Script"]
+    AutoAcc["Automation Account: Budget"]
+    EntraID["Azure managed zero-trust identity<br>(Microsoft Entra ID)"]
+    IMDS["Windows IMDS service firewall"]
 
-    subgraph Azure_VNet [Azure Virtual Network / Honeypot Isolation]
-        NSG[Network Security Group: Allow 3389 / Drop Egress]
-        B(Windows Server 2022 B-Series VM: TCP/3389 Open)
-        FW[Windows Host Firewall: IMDS Lockdown]
-        C{PowerShell Edge Processor}
-        D[(RAM Cache / Batching)]
-        LogFile[(Local Text File)]
-        K[SRE Watchdog Daemon]
-        G[Azure Monitor Agent]
+    %% Define Connections and Data Flow
+    Attacker -->|"RDP Brute force traffic (Port 3389)"| NSG
+    NSG -->|"Inbound RDP attempt"| VM
+    VM <-->|"Clock sync"| NTP
+    VM -->|"Read Event ID 4625 & Geo API Key"| EdgeProc
+    KV -->|"Return API Key into VM's memory"| VM
+    TaskSched -->|"Trigger script every 5 Minutes"| EdgeProc
+    EdgeProc -->|"Authenticate via<br>Managed Identity"| KV
+    EdgeProc -->|"Send IP"| GeoAPI
+    GeoAPI -->|"Return Geo-Data<br>(Timeout/Fail: Fallback rules apply)"| EdgeProc
+    EdgeProc -->|"Sanitize via Regex & Rotate File (>50MB)"| LogFile
+    LogFile -->|"Ingest updated logs"| AMA
+    DCR -->|"Apply KQL & Parsing Schema"| AMA
+    AMA -->|"Forward telemetry"| DCE
+    DCE -->|"Send telemetry to LAW"| LAW
+    LAW -->|"Filter via KQL"| Sentinel
+    Sentinel -->|"Export JSON"| Workbook
+    
+    %% Identity and Automation Routing
+    VM <-->|"Token Request & Response (Blocked for non-system users)"| IMDS
+    IMDS <--->|"Auth Request & Token Response"| EntraID
+    DCE <-->|"Authenticate via<br>Managed Identity"| EntraID
+    AutoAcc -->|"Budget exceeds $30/month"| FinOps
+    FinOps -->|"Sever VM connection"| VM
+    FinOps <-->|"Authenticate via Managed Identity"| EntraID
 
-        NTP -->|Clock Sync| B
-        A -->|Automated Credential Stuffing| NSG
-        NSG -->|Inbound TCP/3389| B
-        B -.->|Blocked RFC 1918 & Unapproved Ext Outbound| NSG
-        
-        B -->|Event ID 4625| C
-        K -.->|Process Health| C
-        K -.->|Rotates at 50MB| LogFile
-        
-        C -->|Sanitise Inputs & Check State| D
-        C -->|HTTP GET Request| F
-        F -->|Geo & ASN Payload| C
-        C -.->|Timeout/Fail: Apply Geo_Unavailable Fallback| D
-        C -->|5-Minute Batch Flush| LogFile
-        
-        LogFile -->|Read Custom Logs| G
-    end
-
-    subgraph Azure_PaaS [Azure Platform as a Service / Management Plane]
-        E[Azure Key Vault]
-        IMDS[Azure Instance Metadata Service]
-        Entra[Microsoft Entra ID / Managed Identity]
-        H[Data Collection Rule: Ingestion-Time KQL]
-        I[(Log Analytics Workspace: Basic Logs Tier)]
-        L[Microsoft Sentinel SIEM]
-        CB[Azure Cost Circuit Breaker / Action Group]
-        WH[Webhook / Automation Runbook]
-
-        C -->|Request Token| FW
-        FW -->|Allow Authorized Service Account| IMDS
-        IMDS -->|Request Auth| Entra
-        Entra -->|Mint OAuth 2.0 Token| IMDS
-        IMDS -->|Return Token| C
-        C -->|Fetch Secret via Token| E
-        E -->|Return API Key to RAM| C
-        
-        G -->|Forward Telemetry| H
-        H -->|Transform & Route| I
-        I -->|KQL Analytics & Alerting| L
-        L -->|JSON Export| J
-        
-        I -.->|Monitor Ingestion Volume| CB
-        CB -.->|Greater than $5 Threshold Trigger| WH
-        WH -.->|Sever Pipeline API Call| H
-        WH -.->|Deallocate VM API Call| B
-    end
 ```
 ---
 ## 4. Repository Navigation (COMING SOON)
