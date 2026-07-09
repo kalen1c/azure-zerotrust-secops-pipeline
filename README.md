@@ -1,5 +1,5 @@
-# sentinel-kql-threat-research
-Azure SIEM architecture logging and analysing global MITRE T1110 threat telemetry. Built with a Microsoft Sentinel pipeline, custom PowerShell scripts querying REST APIs, modern DCR ingestion, KQL threat hunting, and GitHub Pages interactive incident mapping.
+#     azure-zerotrust-secops-pipeline
+An automated Azure SecOps pipeline engineered to process global MITRE T1110 threat telemetry. Features include strict network filtering, Zero-Trust managed identities, a custom C# .NET edge-processor, automated FinOps circuit breakers, KQL transformations, and live Microsoft Sentinel SIEM incident mapping. 
 
 ---
 # Architecture & Threat Intelligence Brief: MITRE T1110 Analysis
