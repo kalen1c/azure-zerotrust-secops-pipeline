@@ -1,4 +1,5 @@
 LawTable_CL
 // Sorts count by time generated
 | summarize AttackVolume = sum(toint(Count)) by TimeGenerated 
+// Renders time chart
 | render timechart with (title="Attack volume (48 hours)")
