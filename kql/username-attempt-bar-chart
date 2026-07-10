@@ -1,0 +1,7 @@
+LawTable_CL
+// Sorts count by username attempt
+| summarize Attempts = sum(toint(Count)) by Username
+// Orders by top 10 attempts
+| top 10 by Attempts desc
+// Renders chart
+| render barchart with (title="Top 10 Usernames Attempted (T1110)")
