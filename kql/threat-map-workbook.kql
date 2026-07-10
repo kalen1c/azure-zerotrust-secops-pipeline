@@ -1,0 +1,23 @@
+// Define table used
+LawTable_CL
+
+// Group Data by IP and Time
+| summarize CurrentCount = sum(toint(Count)), UniqueUsernames = make_set(Username) by IPAddress, TimeGenerated, Latitude, Longitude, City
+
+// Order the data and forces Azure to read line by line
+| order by IPAddress asc, TimeGenerated asc
+| serialize 
+
+// 2. Accumulate the counts with same IP address
+| extend CumulativeCount = row_cumsum(CurrentCount, IPAddress != prev(IPAddress))
+
+// 3. Accumulate the unique usernames with same IP to cumulative username
+| scan declare (CumulativeUsernames:dynamic=dynamic([])) with (
+    step s1: true => CumulativeUsernames = iff(IPAddress == s1.IPAddress, set_union(UniqueUsernames, s1.CumulativeUsernames), UniqueUsernames);)
+
+// 4. Convert the accumulated running array into a clean string
+| extend UsernamesList = strcat_array(CumulativeUsernames, ", ")
+
+// Select the final columns to be displayed and order the data
+| project TimeGenerated, IPAddress, Latitude, Longitude, City, CumulativeCount, CurrentCount, UsernamesList
+| order by TimeGenerated asc
