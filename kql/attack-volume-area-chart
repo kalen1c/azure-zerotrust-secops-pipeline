@@ -1,0 +1,3 @@
+LawTable_CL
+// Sorts count by time generated
+| summarize AttackVolume = sum(toint(Count)) by TimeGenerated 
