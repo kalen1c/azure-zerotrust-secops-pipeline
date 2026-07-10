@@ -1,14 +1,14 @@
-# Authenticates to Azure using VM's assigned identity
+# Authenticate to Azure using VM's assigned identity
 Connect-AzAccount -Identity
 
-# Retrieves API key from Vault into memory
+# Retrieve API key from Vault into memory
 $VaultName = "YOUR_VAULT_NAME"
 $API_Key = (Get-AzKeyVaultSecret -VaultName $VaultName -Name "GeoAPIKey" -AsPlainText)
 
 $LogFilePath = "C:\ProgramData\failed_rdp.json"
 $MaxSize = 50MB
 
-# Archives the file if it gets larger than 50MB
+# Archive the file if it gets larger than 50MB
 if(Test-Path $LogFilePath){
     $File = Get-Item $LogFilePath
         if($File.Length -gt $MaxSize){
@@ -22,40 +22,40 @@ if(Test-Path $LogFilePath){
         }
     }
 
-# Creates new log file if none already exist
+# Create new log file if none already exist
 if(-not (Test-Path $LogFilePath)){
     New-Item -Path $LogFilePath -ItemType File -Force | Out-Null
 }
 
 
-# Grabs logs from last 5 minutes and sorts them chronologically
+# Grab logs from last 5 minutes and sorts them chronologically
 $StartTime = (Get-Date).AddMinutes(-5)
 $FailedLogons = Get-WinEvent -FilterHashtable @{ LogName = 'Security'; Id = 4625; StartTime = $StartTime } -ErrorAction SilentlyContinue | Sort-Object TimeCreated
 
 if ($FailedLogons) {
    
-    $AttackLedger = @{} # Tracks unique IP + Username combos
-    $IPCache = @{}      # Caches GeoData to save API calls
+    $AttackLedger = @{} # Track unique IP + Username combos
+    $IPCache = @{}      # Cache GeoData to save API calls
 
-    # Converts attempts to readable xml
+    # Convert attempts to readable xml
     foreach ($Event in $FailedLogons) {
         $EventXML = [xml]$Event.ToXml()
 
         $Username  = ($EventXML.Event.EventData.Data | Where-Object {$_.Name -eq "TargetUserName"}).'#text'
         
-        # Cleans username field to prevent log poisoning
+        # Clean username field to prevent log poisoning
         $Username = $Username -replace '[^a-zA-Z0-9._@-]', ''
 
         $SourceIP  = ($EventXML.Event.EventData.Data | Where-Object {$_.Name -eq "IpAddress"}).'#text'
         $Timestamp = $Event.TimeCreated.ToString("yyyy-MM-ddTHH:mm:ssZ")
 
-        # Creates a unique key for specific IP and username combo
+        # Create a unique key for specific IP and username combo
         $LedgerKey = "$SourceIP-$Username"
         
-        # Checks if this exact IP and Username combo is already logged
+        # Checksif this exact IP and Username combo is already logged
         if ($AttackLedger.ContainsKey($LedgerKey)) {
             
-            # If yes, adds count rather than calling API again
+            # If yes, add count rather than calling API again
             $AttackLedger[$LedgerKey].Count++
             $AttackLedger[$LedgerKey].Lastseen = $Timestamp
             
@@ -64,7 +64,7 @@ if ($FailedLogons) {
             # If we haven't geolocated this IP yet, call the API
             if (-not $IPCache.ContainsKey($SourceIP)) {
                 $API_URL = "https://api.ipgeolocation.io/ipgeo?apiKey=$API_Key&ip=$SourceIP"
-                # Checks for timout and errors to catch the block on failure
+                # Check for timeout and errors to catch the block on failure
                 try{
                     $IPCache[$SourceIP] = Invoke-RestMethod -Uri $API_URL -Method Get -TimeoutSec 10 -ErrorAction Stop
                 }
@@ -81,7 +81,7 @@ if ($FailedLogons) {
             # Pull the location from geo cache
             $GeoData = $IPCache[$SourceIP]
 
-            # Builds all the data
+            # Build all the data
             $NewAttack = [PSCustomObject]@{
                 IPAddress = $SourceIP
                 Username  = $Username
@@ -94,23 +94,23 @@ if ($FailedLogons) {
                 Count     = 1
             }
 
-            # Saves it to the ledger
+            # Save it to the ledger
             $AttackLedger[$LedgerKey] = $NewAttack
         }
     }
   
-    # Formats the data into JSON lines in memory
+    # Format the data into JSON lines in memory
     $JsonLines = $AttackLedger.Values | ForEach-Object {$_ | ConvertTo-Json -Compress}
     $PayloadString = $JsonLines -join "`r`n"
     
-    # Checks if there is data to write
+    # Check if there is data to write
     if ($AttackLedger.Count -gt 0) {
 
-        # Opens the file and gies permissions to write new data into the file while giving other programs access to read/write it simultaneously
+        # Open the file and gies permissions to write new data into the file while giving other programs access to read/write it simultaneously
         $Stream = [System.IO.File]::Open($LogFilePath, [System.IO.FileMode]::Append, [System.IO.FileAccess]::Write, [System.IO.FileShare]::ReadWrite)
         $Writer = New-Object System.IO.StreamWriter($Stream)
 
-        # Writes data and closes data stream
+        # Write data and closes data stream
         $Writer.WriteLine($PayloadString)
         $Writer.Close()
         $Stream.Close()
@@ -120,5 +120,5 @@ if ($FailedLogons) {
     Write-Host "No attacks detected in the last 5 minutes."
 
     }
-#Exits script to prevent ghost processes
+#Exit script to prevent ghost processes
 Exit
