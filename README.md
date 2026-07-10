@@ -1,5 +1,5 @@
 
-#     azure-zerotrust-secops-pipeline
+# azure-zerotrust-secops-pipeline
 An automated Azure SecOps pipeline engineered to process global MITRE T1110 threat telemetry. Features include strict network filtering, Zero-Trust managed identities, a custom C# .NET edge-processor, automated FinOps circuit breakers, KQL transformations, and live Microsoft Sentinel SIEM incident mapping. 
 
 **Core Technologies:** Azure Sentinel (SIEM) | Log Analytics (LAW) | Kusto Query Language (KQL) | PowerShell | C# .NET | Microsoft Entra ID (Zero Trust) | FinOps Automation
@@ -49,7 +49,7 @@ To simulate a production environment while strictly containing the blast radius 
   
 ---
 ## 3. Architecture Topology & Data Flow
-```mermaid 
+```mermaid
 flowchart TD
     %% Define Nodes
     Attacker["Attacker / Internet"]
@@ -106,8 +106,7 @@ flowchart TD
 * **[`/visualisations/`](./visualisations/visualisations.md)** - Contains the interactive global threat map and high-resolution Microsoft Sentinel SIEM charts.
 * **[`/infrastructure/`](./infrastructure/)** - Contains the complete PowerShell deployment script (including IMDS Zero-Trust firewall rules) and VNet NSG configurations.
 * **[`/scripts/`](./scripts/)** - Contains the core PowerShell automation logic, including the custom C# .NET edge-processor, the 5-minute scheduling loop, and the FinOps kill-switch.
-* **[`/kql/`](./kql/)** - Contains the ingestion-time DCR schema transformations and Microsoft Sentinel threat hunting queries.
-* **[`/dashboards/`](./dashboards/)** - Contains the exported JSON template of the Sentinel Workbook.
+* **[`/kql/`](./kql/)** - Contains the KQL queries used for DCR log parsing and the Sentinel dashboard visualisations.
 * **[`/docs/`](./docs/)** - Contains the daily progress log and MITRE T1110 threat analysis notes.
 
 
