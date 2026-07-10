@@ -2,11 +2,13 @@
 #     azure-zerotrust-secops-pipeline
 An automated Azure SecOps pipeline engineered to process global MITRE T1110 threat telemetry. Features include strict network filtering, Zero-Trust managed identities, a custom C# .NET edge-processor, automated FinOps circuit breakers, KQL transformations, and live Microsoft Sentinel SIEM incident mapping. 
 
+**Core Technologies:** Azure Sentinel (SIEM) | Log Analytics (LAW) | Kusto Query Language (KQL) | PowerShell | C# .NET | Microsoft Entra ID (Zero Trust) | FinOps Automation
+
+---
+
 <img width="3840" height="1926" alt="Threat Map Hero" src="https://github.com/user-attachments/assets/3e754179-670f-4680-a86c-cc0eb04bb4dd" />
 
 **[View the Live Global Threat Map Here](https://kalen1c.github.io/azure-zerotrust-secops-pipeline/visualisations/live-threat-map.html)**
-
-**Core Technologies:** Azure Sentinel (SIEM) | Log Analytics (LAW) | Kusto Query Language (KQL) | PowerShell | C# .NET | Microsoft Entra ID (Zero Trust) | FinOps Automation
 
 ---
 # Architecture & Threat Intelligence Brief: MITRE T1110 Analysis
