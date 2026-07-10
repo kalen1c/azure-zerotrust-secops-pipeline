@@ -1,0 +1,7 @@
+LawTable_CL
+// Groups the attacks by the country of origin
+| summarize TotalAttacks = sum(toint(Count)) by Country
+// Grabs the top 5 countries
+| top 5 by TotalAttacks desc
+// Render sthe pie chart
+| render piechart with (title="T1110 Threat Origin by Country")
