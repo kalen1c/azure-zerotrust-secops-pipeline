@@ -17,7 +17,7 @@ Install-Module -Name Az.KeyVault -Force -AllowClobber -Scope AllUsers
 # Block user access to IMDS IP
 Write-Host "Blocking user access to IMDS IP..."
 # Grab the SID of user
-$UserSID = (Get-LocalUser -Name "YOUR_USER").SID.Value
+$UserSID = (Get-LocalUser -Name $env:USERNAME).SID.Value
 # Format the SID into the required SDDL string format
 $SDDL = "D:(A;;CC;;;$UserSID)"
 # Apply the rule
