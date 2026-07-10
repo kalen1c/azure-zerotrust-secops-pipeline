@@ -1,5 +1,6 @@
 ## This script establishes the necessary prerequisites for the honeypot VM environment
 
+#Syncronises system clock with NTP servers
 Write-Host "Synchronizing system clock with global NTP servers..."
 # Stop the time service to release any locked files
 Stop-Service w32time
@@ -13,6 +14,7 @@ w32tm /resync
 Write-Host "Installing Az.KeyVault module..."
 Install-Module -Name Az.KeyVault -Force -AllowClobber -Scope AllUsers
 
+# Blocks user access to IMDS IP
 Write-Host "Blocking user access to IMDS IP..."
 # Grab the SID of user
 $UserSID = (Get-LocalUser -Name "YOUR_USER").SID.Value
