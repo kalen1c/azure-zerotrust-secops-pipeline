@@ -6,6 +6,8 @@ I engineered a custom Microsoft Sentinel workbook to transform raw honeypot logs
 
 <img width="100%" alt="Attack attempts location map" src="https://github.com/user-attachments/assets/3826a44b-5870-428f-a02e-07cf42625465" />
 
+**[View the Live Global Threat Map Here](https://kalen1c.github.io/azure-zerotrust-secops-pipeline/visualisations/live-threat-map.html)**
+
 ### 2. Attack Velocity (48-Hour Window)
 *Visualises attack frequency to highlight the sudden volumetric spikes characteristic of automated botnets.*
 
