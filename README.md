@@ -103,7 +103,7 @@ flowchart TD
 
 ---
 ## 4. Repository Navigation
-* **[`/visualisations/`](./visualisations/)** - Contains the interactive global threat map and high-resolution Microsoft Sentinel SIEM charts.
+* **[`/visualisations/`](./visualisations/visualisations.md)** - Contains the interactive global threat map and high-resolution Microsoft Sentinel SIEM charts.
 * **[`/infrastructure/`](./infrastructure/)** - Contains the complete PowerShell deployment script (including IMDS Zero-Trust firewall rules) and VNet NSG configurations.
 * **[`/scripts/`](./scripts/)** - Contains the core PowerShell automation logic, including the custom C# .NET edge-processor, the 5-minute scheduling loop, and the FinOps kill-switch.
 * **[`/kql/`](./kql/)** - Contains the ingestion-time DCR schema transformations and Microsoft Sentinel threat hunting queries.
